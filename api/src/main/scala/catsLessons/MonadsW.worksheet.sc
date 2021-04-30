@@ -31,7 +31,6 @@ Either.catchNonFatal("-1".toInt)
 
 // --- MonadError
 type EitherTh[A] = Either[Throwable, A]
-implicit val monadError = MonadError[EitherTh, Throwable]
 def validateAdult[F[_]](age: Int)(implicit me: MonadError[F, Throwable]): F[Int] =
   if (age >= 18) age.pure[F]
   else {
@@ -162,7 +161,7 @@ def branch[A](left: Tree[A], right: Tree[A]): Tree[A] =
 def leaf[A](value: A): Tree[A] =
   Leaf(value)
 
-implicit def monadTree = new Monad[Tree] {
+implicit def monadTree: Monad[Tree] = new Monad[Tree] {
   override def flatMap[A, B](fa: Tree[A])(f: A => Tree[B]): Tree[B] = fa match {
     case Branch(l, r) => Branch(flatMap(l)(f), flatMap(r)(f))
     case Leaf(value)  => f(value)

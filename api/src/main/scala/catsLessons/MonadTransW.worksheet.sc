@@ -7,21 +7,19 @@ import cats.implicits._
 case class ComposedO[M1[_], A](value: M1[Option[A]]) {
   def flatMap[B](f: A => ComposedO[M1, B])(implicit m1: Monad[M1]) = flatMapF(f.map(_.value))
   def flatMapF[B](f: A => M1[Option[B]])(implicit m1: Monad[M1])   = ComposedO(m1.flatMap(value)(_.fold(Option.empty[B].pure[M1])(f)))
+  def map[B](f: A => B)(implicit m1: Monad[M1]) = flatMap(a => ComposedO(f(a).pure[Option].pure[M1]))
 } 
 
-class ComposedOMonad[M1[_]: Monad, A] extends Monad[({type λ[α] = ComposedO[M1[α],A]})#λ] {
-  val m1 = implicitly[Monad[M1]]
-  override def flatMap[A, B](fa: ComposedO[M1, A])(f: A => ComposedO[M1, B]): ComposedO[M1, B] = fa.flatMap(f)
-  override def pure[A](x: A): ComposedO[M1, A] = ComposedO(x.pure[Option].pure[M1])
-  override def tailRecM[A, B](a: A)(f: A => ComposedO[M1, Either[A, B]]): ComposedO[M1, B] =
-    ComposedO(
-      m1.tailRecM(a)(a0 =>
-        m1.map(f(a0).value)(
-          _.fold[Either[A, Option[B]]](Right(None))(_.map(b => Some(b): Option[B]))
-        )
-      )
-    )
+type ComposedListOption[A] = ComposedO[List, A]
+
+class ComposedOMonadList extends Monad[ComposedListOption] {
+  override def flatMap[A, B](fa: ComposedListOption[A])(f: A => ComposedListOption[B]): ComposedListOption[B] = fa.flatMap(f)
+  override def pure[A](x: A): ComposedListOption[A] = ComposedO(x.pure[Option].pure[List])
+  override def tailRecM[A, B](a: A)(f: A => ComposedListOption[Either[A, B]]): ComposedListOption[B] = ???
+  override def map[A, B](fa: ComposedListOption[A])(f: A => B): ComposedListOption[B] = fa.flatMap(f.map(r => pure(r)))
 }
 
-val testMonad = List(Option(1), Option(2))
-type ListOption[A] = List[Option[A]]
+val testMonad = ComposedO(List(Option(1), Option(2)))
+(for {
+  a <- testMonad
+} yield a * 2).value

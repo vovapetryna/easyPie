@@ -1,7 +1,7 @@
 val mainSettings = Seq(
   name := "easyPie",
   version := "0.1.0",
-  scalaVersion := "2.13.5",
+  scalaVersion := "3.0.0-RC1",
   scalacOptions := Seq("-language:postfixOps")
 )
 
@@ -12,25 +12,22 @@ val circleDeps = Seq(
   "io.circe" %% "circe-generic",
   "io.circe" %% "circe-parser",
   "io.circe" %% "circe-refined"
-).map(_ % "0.14.0-M5")
+).map(_ % "0.14.0-M4")
 
 val refinedDeps = Seq(
   "eu.timepit" %% "refined",
-  "eu.timepit" %% "refined-pureconfig"
-).map(_ % "0.9.24")
+).map(_ % "0.9.23")
 
-val utilDeps = Seq(
-  "com.github.pureconfig" %% "pureconfig" % "0.15.0"
-) ++ circleDeps ++ refinedDeps
+val utilDeps = circleDeps ++ refinedDeps
 
 val doobieDeps = Seq(
   "org.tpolecat" %% "doobie-core",
   "org.tpolecat" %% "doobie-postgres",
   "org.tpolecat" %% "doobie-refined"
-).map(_ % "1.0.0-M2")
+).map(_ % "0.12.1")
 
 val catsDeps = Seq(
-  "org.typelevel" %% "cats-core" % "2.6.0"
+  "org.typelevel" %% "cats-core" % "2.4.2"
 )
 
 val serverDeps = Seq(
@@ -38,7 +35,7 @@ val serverDeps = Seq(
   "org.http4s" %% "http4s-dsl",
   "org.http4s" %% "http4s-server",
   "org.http4s" %% "http4s-circe"
-).map(_ % "1.0.0-M21")
+).map(_ % "0.22.0-M6")
 
 //--- Projects
 
