@@ -15,7 +15,7 @@ val circleDeps = Seq(
 ).map(_ % "0.14.0-M4")
 
 val refinedDeps = Seq(
-  "eu.timepit" %% "refined",
+  "eu.timepit" %% "refined"
 ).map(_ % "0.9.23")
 
 val utilDeps = circleDeps ++ refinedDeps
@@ -27,7 +27,8 @@ val doobieDeps = Seq(
 ).map(_ % "0.12.1")
 
 val catsDeps = Seq(
-  "org.typelevel" %% "cats-core" % "2.4.2"
+  "org.typelevel" %% "cats-core"   % "2.4.2",
+  "org.typelevel" %% "cats-effect" % "2.3.3"
 )
 
 val serverDeps = Seq(
