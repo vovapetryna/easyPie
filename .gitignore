@@ -1,0 +1,9 @@
+null
+.ammonite
+.bloop
+.bsp
+.idea
+.metals
+.vscode
+target
+metals.sbt
