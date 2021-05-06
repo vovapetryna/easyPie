@@ -1,9 +1,6 @@
-val mainSettings = Seq(
-  name := "easyPie",
-  version := "0.1.0",
-  scalaVersion := "3.0.0-RC1",
-  scalacOptions := Seq("-language:postfixOps")
-)
+ThisBuild / version := "0.1.0"
+ThisBuild / scalaVersion := "3.0.0-RC1"
+ThisBuild / scalacOptions := Seq("-language:postfixOps")
 
 //--- Dependencies
 
@@ -42,25 +39,21 @@ val serverDeps = Seq(
 
 lazy val core = project
   .in(file("modules/core"))
-  .settings(mainSettings: _*)
   .settings(libraryDependencies ++= catsDeps ++ utilDeps)
 
 lazy val database = project
   .in(file("modules/database"))
-  .settings(mainSettings: _*)
-  .settings(libraryDependencies ++= catsDeps ++ utilDeps)
-  .settings(libraryDependencies ++= doobieDeps)
   .dependsOn(core)
+  // .settings(libraryDependencies ++= catsDeps ++ utilDeps)
+  .settings(libraryDependencies ++= doobieDeps)
 
 lazy val api = project
   .in(file("api"))
-  .settings(mainSettings: _*)
-  .dependsOn(database)
-  .settings(libraryDependencies ++= catsDeps ++ utilDeps)
-  .settings(libraryDependencies ++= doobieDeps)
+  .dependsOn(database, core)
+  // .settings(libraryDependencies ++= catsDeps ++ utilDeps)
+  // .settings(libraryDependencies ++= doobieDeps)
   .settings(libraryDependencies ++= serverDeps)
 
 lazy val root = project
   .in(file("."))
-  .settings(mainSettings: _*)
   .aggregate(api)
