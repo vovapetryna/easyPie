@@ -9,7 +9,7 @@ import fs2._
 import fs2.io.file
 import java.io.File
 
-val defFile = new File("application.conf")
+def defFile(cl: ClassLoader) = new File(cl.getResource("application.conf").toURI)
 type CReader = [F[_], A] =>> Reader[Map[String, Json], F[A]]
 
 def deriveReader[F[_]: Sync, T](path: String)(implicit jDecoder: Decoder[T]): CReader[F, T] =
@@ -20,7 +20,7 @@ def deriveReader[F[_]: Sync, T](path: String)(implicit jDecoder: Decoder[T]): CR
     } yield pased)
   }
 
-def readConfig[F[_]: Sync](source: File = defFile)(implicit cs: ContextShift[F]) =
+def readConfig[F[_]: Sync](source: File)(implicit cs: ContextShift[F]) =
   Blocker[F].use { blocker =>
     file
       .readAll[F](source.toPath, blocker, 2048)
@@ -30,7 +30,7 @@ def readConfig[F[_]: Sync](source: File = defFile)(implicit cs: ContextShift[F])
       .map(_.fold("")(_ + _))
   }
 
-def loadConfig[F[_]: Sync, A](reader: CReader[F, A], source: File = defFile)(implicit blockerCS: ContextShift[F]) = for {
+def loadConfig[F[_]: Sync, A](reader: CReader[F, A], source: File)(implicit blockerCS: ContextShift[F]) = for {
   sourceConfig <- readConfig(source)
   parsed <- Sync[F].fromEither {
     parser.decode[Map[String, Json]](sourceConfig).leftMap(e => new Exception(s"failed to parse config file : ${e.toString}"))

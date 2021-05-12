@@ -11,9 +11,11 @@ import doobie._
 
 import scala.concurrent.ExecutionContext.global
 
+import java.io.File
+
 object Main extends IOApp {
   def run(args: List[String]) = for {
-    apiWithDb <- jsConfig.loadConfig[IO, (configs.Api, configs.Db)](configs.apiWithDb[IO])
+    apiWithDb <- jsConfig.loadConfig[IO, (configs.Api, configs.Db)](configs.apiWithDb[IO], jsConfig.defFile(getClass.getClassLoader))
     (api, db) = apiWithDb
     xa        = Transactor.fromDriverManager[IO](db.driver, db.url, db.name, db.password)
     repo      = new doobie.Account(xa)
