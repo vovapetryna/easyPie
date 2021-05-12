@@ -16,7 +16,6 @@ val refinedDeps = Seq(
 
 val utilDeps = Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3"
-  // "org.slf4j"                  % "jul-to-slf4j"         % "1.7.25"
 ) ++ circleDeps ++ refinedDeps
 
 val doobieDeps = Seq(
@@ -30,6 +29,11 @@ val catsDeps = Seq(
   "org.typelevel" %% "cats-effect" % "2.3.3"
 )
 
+val fsDeps = Seq(
+  "co.fs2" %% "fs2-core",
+  "co.fs2" %% "fs2-io"
+).map(_ % "2.5.2")
+
 val serverDeps = Seq(
   "org.http4s" %% "http4s-core",
   "org.http4s" %% "http4s-dsl",
@@ -39,9 +43,13 @@ val serverDeps = Seq(
 ).map(_ % "0.22.0-M6")
 
 //--- Projects
+lazy val config = project
+  .in(file("modules/jsConfig"))
+  .settings(libraryDependencies ++= catsDeps ++ fsDeps ++ utilDeps)
+
 lazy val core = project
   .in(file("modules/core"))
-  .settings(libraryDependencies ++= catsDeps ++ utilDeps)
+  .dependsOn(config)
 
 lazy val database = project
   .in(file("modules/database"))
