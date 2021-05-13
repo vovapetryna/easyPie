@@ -34,6 +34,10 @@ val fsDeps = Seq(
   "co.fs2" %% "fs2-io"
 ).map(_ % "2.5.2")
 
+val secureDeps = Seq(
+  "com.github.jwt-scala" %% "jwt-core" % "7.1.1"
+)
+
 val serverDeps = Seq(
   "org.http4s" %% "http4s-core",
   "org.http4s" %% "http4s-dsl",
@@ -59,7 +63,7 @@ lazy val database = project
 lazy val api = project
   .in(file("api"))
   .dependsOn(database, core)
-  .settings(libraryDependencies ++= serverDeps)
+  .settings(libraryDependencies ++= serverDeps ++ secureDeps)
 
 lazy val root = project
   .in(file("."))

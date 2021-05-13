@@ -10,14 +10,15 @@ import org.http4s.dsl._
 import types._
 
 final class Account[F[_]: Sync](repo: repositories.Account[F]) extends Http4sDsl[F] {
-  val routes: HttpRoutes[F] = HttpRoutes.of[F] {
-    case GET -> Root / "account" / PathId(id) =>
+  val routes: AuthedRoutes[models.Account, F] = AuthedRoutes.of[models.Account, F] {
+    case GET -> Root / "account" as account => Ok(account.asJson)
+    case GET -> Root / "account" / PathId(id) as account =>
       for {
         row  <- repo.getById(id)
         resp <- row.fold(NotFound())(a => Ok(a.asJson))
       } yield resp
-    case req @ POST -> Root / "account" =>
-      req.decodeJson[models.Account].flatMap { a =>
+    case req @ POST -> Root / "account" as account =>
+      req.req.decodeJson[models.Account].flatMap { a =>
         for {
           cnt <- repo.insert(a)
           res <- cnt match {
