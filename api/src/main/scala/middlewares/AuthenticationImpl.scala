@@ -15,7 +15,7 @@ import io.circe.syntax._
 
 object AuthenticationImpl {
   def build[F[_]: Sync](secretKey: String, repo: repositories.Account[F]) = Authentication[F, models.Session, models.Account](
-    Kleisli { session => repo.getById(session.id).map(o => Either.fromOption(o, "Failed to get account, wrong Id")) },
+    session => repo.getById(session.id).map(o => Either.fromOption(o, "account_get_error_wrong_id")),
     secretKey
   )
 }

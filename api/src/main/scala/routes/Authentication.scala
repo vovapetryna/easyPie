@@ -14,13 +14,13 @@ final class Authentication[F[_]: Sync](
     authMiddleware: middlewares.Authentication[F, models.Session, models.Account]
 ) extends Http4sDsl[F] {
   val routes: HttpRoutes[F] = HttpRoutes.of[F] {
-    case GET -> Root / "authentication" / "logout" => authMiddleware.logout.run(())
+    case GET -> Root / "authentication" / "logout" => authMiddleware.logout
     case req @ POST -> Root / "authentication" / "login" =>
       for {
         authEntry <- req.decodeJson[dtos.AuthEntry]
         account   <- repo.getByEmailAndPassword(authEntry.email, authEntry.password)
         session = account.map(_.session)
-        response <- authMiddleware.login.run(session)
+        response <- authMiddleware.login(session)
       } yield response
   }
 }

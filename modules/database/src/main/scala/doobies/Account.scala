@@ -1,6 +1,7 @@
-package doobie
+package doobies
 
 import cats.effect.Sync
+import doobie._
 import doobie.implicits._
 import doobie.refined.implicits._
 import types._
