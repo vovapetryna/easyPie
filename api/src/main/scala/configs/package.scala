@@ -19,14 +19,3 @@ object Db {
   implicit val r: Decoder[Db]            = Decoder.forProduct4("driver", "url", "name", "password")(Db.apply)
   def reader[F[_]: Sync]: CReader[F, Db] = deriveReader[F, Db]("db")
 }
-
-final case class Auth(secretKey: NeString)
-object Auth {
-  implicit val r: Decoder[Auth]            = Decoder.forProduct1("secretKey")(Auth.apply)
-  def reader[F[_]: Sync]: CReader[F, Auth] = deriveReader[F, Auth]("auth")
-}
-
-def apiWithDb[F[_]: Sync]: CReader[F, (Api, Db)] = for {
-  api <- Api.reader
-  db  <- Db.reader
-} yield (api, db).tupled

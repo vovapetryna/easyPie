@@ -17,15 +17,12 @@ object Main extends IOApp {
   val confFile = jsConfig.defFile(getClass.getClassLoader)
 
   def run(args: List[String]) = for {
-    api      <- jsConfig.loadConfig[IO, configs.Api](configs.Api.reader[IO], confFile)
-    db       <- jsConfig.loadConfig[IO, configs.Db](configs.Db.reader[IO], confFile)
-    authConf <- jsConfig.loadConfig[IO, configs.Auth](configs.Auth.reader[IO], confFile)
-    tx    = Transactor.fromDriverManager[IO](db.driver, db.url, db.name, db.password)
-    repos = doobies.repos(tx)
-    auth  = middlewares.AuthenticationImpl.build[IO](authConf.secretKey, repos.account)
-    service = (new routes.Authentication(repos.account, auth).routes) <+>
-      auth.wrap(new routes.Account(repos.account).routes)
-    router = Router("/" -> service).orNotFound
+    api <- jsConfig.loadConfig[IO, configs.Api](configs.Api.reader[IO], confFile)
+    db  <- jsConfig.loadConfig[IO, configs.Db](configs.Db.reader[IO], confFile)
+    tx      = Transactor.fromDriverManager[IO](db.driver, db.url, db.name, db.password)
+    repos   = doobies.repos(tx)
+    service = new routes.Account(repos.account).routes
+    router  = Router("/" -> service).orNotFound
     server <- BlazeServerBuilder[IO](global).bindHttp(api.port, api.host).withHttpApp(router).resource.use(_ => IO.never).as(ExitCode.Success)
   } yield server
 
