@@ -7,9 +7,12 @@ import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl._
+import org.http4s.implicits._
 import types._
 
-final class Account[F[_]: Sync](repo: repositories.Account[F]) extends Http4sDsl[F] {
+final class Account[F[_]: Async](repo: repositories.Account[F]) extends Http4sDsl[F] {
+  implicit val aDecoder = jsonOf[F, models.Account]
+
   val routes: HttpRoutes[F] = HttpRoutes.of[F] {
     case GET -> Root / "account" / PathId(id) =>
       for {
@@ -17,7 +20,7 @@ final class Account[F[_]: Sync](repo: repositories.Account[F]) extends Http4sDsl
         resp <- row.fold(NotFound())(a => Ok(a.asJson))
       } yield resp
     case req @ POST -> Root / "account" =>
-      req.decodeJson[models.Account].flatMap { a =>
+      req.as[models.Account].flatMap { a =>
         for {
           cnt <- repo.insert(a)
           res <- cnt match {

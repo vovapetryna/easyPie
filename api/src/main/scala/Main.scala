@@ -1,29 +1,17 @@
-import cats._
-import cats.implicits._
 import cats.effect._
-import cats.effect.implicits._
-import org.http4s.syntax._
-import org.http4s.implicits._
-import org.http4s.server.blaze._
-import org.http4s.server.Router
+import cats.implicits._
 import eu.timepit.refined.auto._
-import doobie._
-
-import scala.concurrent.ExecutionContext.global
-
-import java.io.File
+import mongo4cats.client.MongoClientF
+import pureconfig._
 
 object Main extends IOApp {
-  val confFile = jsConfig.defFile(getClass.getClassLoader)
-
-  def run(args: List[String]) = for {
-    api <- jsConfig.loadConfig[IO, configs.Api](configs.Api.reader[IO], confFile)
-    db  <- jsConfig.loadConfig[IO, configs.Db](configs.Db.reader[IO], confFile)
-    tx      = Transactor.fromDriverManager[IO](db.driver, db.url, db.name, db.password)
-    repos   = doobies.repos(tx)
-    service = new routes.Account(repos.account).routes
-    router  = Router("/" -> service).orNotFound
-    server <- BlazeServerBuilder[IO](global).bindHttp(api.port, api.host).withHttpApp(router).resource.use(_ => IO.never).as(ExitCode.Success)
-  } yield server
-
+  def run(args: List[String]): IO[ExitCode] = for {
+    dbConf <- IO { ConfigSource.default.at("db").loadOrThrow[configs.Db] }
+    result <- MongoClientF.fromConnectionString[IO](s"mongodb://${dbConf.host}:${dbConf.port}").use { client =>
+      for {
+        db         <- client.getDatabase(dbConf.db)
+        collection <- db.getCollection(dbConf.collection)
+      } yield ExitCode.Success
+    }
+  } yield result
 }

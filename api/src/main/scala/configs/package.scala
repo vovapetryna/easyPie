@@ -1,21 +1,15 @@
 package configs
 
-import cats._
-import cats.implicits._
-import cats.effect._
 import types._
-import io.circe._
-import io.circe.refined._
-import jsConfig._
+import eu.timepit.refined.pureconfig._
+import pureconfig._
 
 final case class Api(host: NeString, port: Int)
 object Api {
-  implicit val r: Decoder[Api]            = Decoder.forProduct2("host", "port")(Api.apply)
-  def reader[F[_]: Sync]: CReader[F, Api] = deriveReader[F, Api]("api")
+  implicit val r: ConfigReader[Api] = ConfigReader.forProduct2("host", "port")(Api.apply)
 }
 
-final case class Db(driver: NeString, url: Url, name: NeString, password: NeString)
+final case class Db(host: NeString, port: Int, db: NeString, collection: NeString)
 object Db {
-  implicit val r: Decoder[Db]            = Decoder.forProduct4("driver", "url", "name", "password")(Db.apply)
-  def reader[F[_]: Sync]: CReader[F, Db] = deriveReader[F, Db]("db")
+  implicit val r: ConfigReader[Db] = ConfigReader.forProduct4("host", "port", "db", "collection")(Db.apply)
 }
