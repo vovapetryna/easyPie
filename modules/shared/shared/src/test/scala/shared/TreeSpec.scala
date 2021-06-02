@@ -16,7 +16,7 @@ class TreeSpec extends AnyFlatSpec {
   val initTree: Tree[String] = Tree.branch("", Tree.leaf("Left->") :: Nil, Tree.leaf("<-Right") :: Nil)
 
   "Tree infixReduce" should "fold left in infix order" in {
-    val folded = testTree.infixReduce
+    val folded = testTree.infixReduce(identity)
     assert(folded == "32415")
   }
 
@@ -34,7 +34,7 @@ class TreeSpec extends AnyFlatSpec {
 
     operations.foldLeft(initTree) { case (acc, opp) =>
       val next = opp(acc)
-      println(next, next.infixReduce)
+      println(next, next.infixReduce(identity))
       next
     }
   }

@@ -41,8 +41,9 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
     ).map(_ % "0.14.0-M4"),
     libraryDependencies ++= Seq("eu.timepit" %%% "refined").map(_ % refinedV),
     libraryDependencies ++= Seq(
-      "org.scala-js"   %% "scalajs-stubs" % "1.0.0" % "provided",
-      "org.scalatest" %%% "scalatest"     % "3.2.7" % "test"
+      "org.scala-js"   %% "scalajs-stubs"   % "1.0.0" % "provided",
+      "org.scala-js"   %% "scalajs-library" % "1.5.1",
+      "org.scalatest" %%% "scalatest"       % "3.2.7" % "test"
     ),
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core"   % "2.5.0",
@@ -72,3 +73,6 @@ lazy val api = project
 lazy val root = project
   .in(file("."))
   .aggregate(api)
+
+//Tasks
+addCommandAlias("js", ";project sharedJS; fastOptJS")

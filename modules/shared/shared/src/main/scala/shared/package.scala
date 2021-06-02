@@ -1,8 +1,4 @@
 package object shared {
-  object TreeDoc {
-    type STree = Tree[Atom[String]]
-
-    def init(): STree = ???
-
-  }
+  type SAtom = Atom[String]
+  type STree = Tree[SAtom]
 }
