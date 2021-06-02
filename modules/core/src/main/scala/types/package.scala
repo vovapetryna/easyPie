@@ -6,6 +6,8 @@ import eu.timepit.refined.string._
 import scala.util.Try
 
 package object types {
+  type Handler[F[_], State] = State => PartialFunction[models.InputMessages, F[Unit]]
+
   type NeString = String Refined NonEmpty
   type Id       = Long Refined GreaterEqual[0]
   type Email    = String Refined MatchesRegex["""^\S+@\S+$"""]

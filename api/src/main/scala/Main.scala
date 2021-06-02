@@ -18,21 +18,17 @@ object Main extends IOApp {
       for {
         db         <- client.getDatabase(dbConf.db)
         collection <- db.getCollection(dbConf.collection)
-        ref        <- Ref.of[IO, models.WState[IO]](models.WState.init[IO])
+        topicsR    <- Ref.of[IO, models.Topics[IO]](models.Topics.init[IO])
         exitCode <- {
-          val ws = new routes.TestWS[IO](ref)
+          val ws = new routes.WSDocuments[IO](topicsR, handlers.handler())
           val server = BlazeServerBuilder[IO](global)
             .bindHttp(apiConf.port, apiConf.host)
             .withHttpApp(ws.routes.orNotFound)
             .serve
-
-          ref.get.flatMap { state =>
-            val keepAlive = state.topics.values.map { topic =>
-              Stream.awakeEvery[IO](30.seconds).map(_ => models.OutputMessages.Simple("ping")).through(topic.publish)
-            }
-            val queueProcess = state.queues.values.map { q => Stream.fromQueueUnterminated(q).map(println) }
-            Stream(Seq(server) ++ keepAlive ++ queueProcess: _*).parJoinUnbounded.compile.drain.as(ExitCode.Success)
-          }
+          val ping = Stream
+            .awakeEvery[IO](30.seconds)
+            .evalMap(_ => topicsR.get.flatMap(s => s.topics.values.toList.map(_.publish1(models.OutputMessages.Ping())).sequence))
+          Stream(server, ping).parJoinUnbounded.compile.drain.as(ExitCode.Success)
         }
       } yield exitCode
     }
