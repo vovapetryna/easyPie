@@ -33,7 +33,7 @@ case class Authentication[F[_]: Sync, Session: Decoder: Encoder, Account](
         token    <- JWTMac.buildToString[F, HMACSHA256](claim, key)
         response <- Ok().map(_.addCookie(ResponseCookie(cookieKey, token, path = Option("/"))))
       } yield response
-    case None => NotFound("account_not_found")
+    case _ => NotFound("account_not_found")
   }
 
   val logout: F[Response[F]] = Ok().map(_.addCookie(ResponseCookie(cookieKey, "", path = Option("/"))))
@@ -69,9 +69,9 @@ object Authentication {
   def validatePass[F[_]: Sync](pass: NeString, hash: Option[NeString]): F[Option[Boolean]] =
     hash.map(h => BCrypt.checkpwBool[F](pass, PasswordHash.apply[BCrypt](h))).sequence
 
-  def build[F[_]: Sync](secretKey: String, repo: repositories.Account[F]): Authentication[F, models.Account.Session, models.Account] =
+  def build[F[_]: Sync](secretKey: String, repo: mongos.Repos[F]): Authentication[F, models.Account.Session, models.Account] =
     Authentication[F, models.Account.Session, models.Account](
-      session => repo.byId(session._id).map(o => Either.fromOption(o, "account_get_error_wrong_id")),
+      session => repo.account.byId(session._id).map(o => Either.fromOption(o, "account_get_error_wrong_id")),
       secretKey
     )
 

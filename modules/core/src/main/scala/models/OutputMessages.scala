@@ -22,7 +22,7 @@ object OutputMessages {
 
   implicit val w: Encoder[OutputMessages] = Encoder.instance {
     case simple: Simple => simple.asJson
-    case ping: Ping => ping.asJson
+    case ping: Ping     => ping.asJson
   }
   implicit val r: Decoder[OutputMessages] = List[Decoder[OutputMessages]](
     Decoder[Simple].widen,

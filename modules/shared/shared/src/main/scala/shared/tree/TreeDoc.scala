@@ -31,4 +31,6 @@ class TreeDoc(data: STree, localId: Int, implicit val siteId: Int) {
     }
     TreeDoc(newTree, localId + 1)
   }
+
+  lazy val rawTree: STree = data
 }

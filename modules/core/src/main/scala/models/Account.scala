@@ -1,6 +1,7 @@
 package models
 
 import io.circe._
+import io.circe.generic.semiauto._
 import io.circe.refined._
 import mongo4cats.circe._
 import org.mongodb.scala.bson.ObjectId
@@ -13,19 +14,19 @@ case class Account(_id: ObjectId, login: NeString, token: NeString) {
 object Account {
   def fromRegister(register: Account.I.Register, token: NeString): Account = Account(new ObjectId(), register.login, token)
 
-  implicit val r: Decoder[Account] = Decoder.forProduct3("_id", "login", "token")(Account.apply)
-  implicit val e: Encoder[Account] = Encoder.forProduct3("_id", "login", "token")(t => (t._id, t.login, t.token))
+  implicit val r: Decoder[Account] = deriveDecoder
+  implicit val e: Encoder[Account] = deriveEncoder
 
   case class Session(_id: ObjectId)
   object Session {
-    implicit val r: Decoder[Session] = Decoder.forProduct1("_id")(Session.apply)
-    implicit val e: Encoder[Session] = Encoder.forProduct1("_id")(_._id)
+    implicit val r: Decoder[Session] = deriveDecoder
+    implicit val e: Encoder[Session] = deriveEncoder
   }
 
   object I {
     case class Login(login: NeString, token: NeString)
-    object Login { implicit val r: Decoder[Login] = Decoder.forProduct2("login", "token")(Login.apply) }
+    object Login { implicit val r: Decoder[Login] = deriveDecoder }
     case class Register(login: NeString)
-    object Register { implicit val r: Decoder[Register] = Decoder.forProduct1("login")(Register.apply) }
+    object Register { implicit val r: Decoder[Register] = deriveDecoder }
   }
 }
