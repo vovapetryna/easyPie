@@ -12,8 +12,9 @@ import org.http4s.server.websocket._
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame._
 
-class WSDocuments[F[_]: Async](topicsR: TopicsR[F], handler: types.Handler[F, handlers.Input[F]]) extends Http4sDsl[F] {
-  def routes: HttpRoutes[F] = HttpRoutes.of { case GET -> Root / "document" / IntVar(documentId) =>
+class WSDocuments[F[_]: Async](topicsR: TopicsR[F], handler: handlers.Handler[F, handlers.Input[F]]) extends Http4sDsl[F] {
+//  def routes: HttpRoutes[F] = HttpRoutes.of { case GET -> Root / "document" / IntVar(documentId) =>
+  def routes: AuthedRoutes[models.Account, F] = AuthedRoutes.of[models.Account, F] { case GET -> Root / "document" / IntVar(documentId) as account =>
     val toClientF = for {
       topics  <- topicsR.get
       resultO <- topics.subscribe(documentId).pure[F]

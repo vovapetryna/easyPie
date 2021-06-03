@@ -1,8 +1,8 @@
 import cats.effect.Async
 import cats.implicits._
-import types.Handler
 
 package object handlers {
+  type Handler[F[_], State] = State => PartialFunction[models.InputMessages, F[Unit]]
   case class Input[F[_]](id: Long, topicsR: routes.TopicsR[F])
 
   def simpleHandler[F[_]: Async](): Handler[F, Input[F]] = state => { case models.InputMessages.Simple(value) =>

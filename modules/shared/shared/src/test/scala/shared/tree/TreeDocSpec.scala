@@ -1,4 +1,4 @@
-package shared
+package shared.tree
 
 import cats.implicits._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -8,12 +8,12 @@ class TreeDocSpec extends AnyFlatSpec {
     val empty = TreeDoc.init(1)
   }
   it should "add value to Tree Doc" in {
-    val empty = TreeDoc.init(1)
+    val empty                       = TreeDoc.init(1)
     val left :: top :: right :: Nil = empty.represent
 
     val operations = Seq[TreeDoc => TreeDoc](
-      _.put("a", top, right),
-      _.put("b", left, top),
+      _.process(shared.actions.Action.Add("a", top, right, 2)),
+      _.process(shared.actions.Action.Add("b", left, top, 1))
     )
 
     operations.foldLeft(empty) { case (acc, opp) =>
@@ -23,4 +23,3 @@ class TreeDocSpec extends AnyFlatSpec {
     }
   }
 }
-

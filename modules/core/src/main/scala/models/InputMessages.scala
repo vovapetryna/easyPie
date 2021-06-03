@@ -12,7 +12,8 @@ object InputMessages {
   case class Wrong(ex: String)      extends InputMessages
   case class Close(message: String) extends InputMessages
 
-  case class Reload() extends InputMessages
+  case class Reload()                              extends InputMessages
+  case class Action(action: shared.actions.Action) extends InputMessages
 
   object Simple {
     implicit val r: Decoder[Simple] = deriveDecoder
@@ -31,17 +32,23 @@ object InputMessages {
     implicit val r: Decoder[Reload] = deriveDecoder
     implicit val w: Encoder[Reload] = deriveEncoder
   }
+  object Action {
+    implicit val r: Decoder[Action] = deriveDecoder
+    implicit val w: Encoder[Action] = deriveEncoder
+  }
 
   implicit val w: Encoder[InputMessages] = Encoder.instance {
     case simple: Simple => simple.asJson
     case wrong: Wrong   => wrong.asJson
     case close: Close   => close.asJson
     case reload: Reload => reload.asJson
+    case action: Action => action.asJson
   }
   implicit val r: Decoder[InputMessages] = List[Decoder[InputMessages]](
     Decoder[Simple].widen,
     Decoder[Wrong].widen,
     Decoder[Close].widen,
-    Decoder[Reload].widen
+    Decoder[Reload].widen,
+    Decoder[Action].widen
   ).reduceLeft(_ or _)
 }

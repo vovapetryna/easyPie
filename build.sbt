@@ -29,6 +29,13 @@ val serverDeps = Seq(
   "org.http4s" %% "http4s-blaze-server"
 ).map(_ % "1.0.0-M21")
 
+val secureDeps = Seq(
+  "io.github.jmcardon" %% "tsec-common",
+  "io.github.jmcardon" %% "tsec-password",
+  "io.github.jmcardon" %% "tsec-jwt-sig",
+  "io.github.jmcardon" %% "tsec-jwt-mac"
+).map(_ % "0.4.0-M1")
+
 //--- Projects
 lazy val shared = crossProject(JSPlatform, JVMPlatform)
   .in(file("modules/shared"))
@@ -58,17 +65,16 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
 lazy val core = project
   .in(file("modules/core"))
   .dependsOn(shared.jvm)
-  .settings(libraryDependencies ++= utilDeps ++ fsDeps ++ refinedDeps)
+  .settings(libraryDependencies ++= utilDeps ++ fsDeps ++ refinedDeps ++ databaseDeps)
 
 lazy val database = project
   .in(file("modules/database"))
   .dependsOn(core)
-  .settings(libraryDependencies ++= databaseDeps)
 
 lazy val api = project
   .in(file("api"))
   .dependsOn(database)
-  .settings(libraryDependencies ++= serverDeps)
+  .settings(libraryDependencies ++= serverDeps ++ secureDeps)
 
 lazy val root = project
   .in(file("."))

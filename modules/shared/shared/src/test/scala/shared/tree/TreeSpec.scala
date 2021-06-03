@@ -1,9 +1,10 @@
-package shared
+package shared.tree
 
 import cats.implicits._
 import org.scalatest.flatspec.AnyFlatSpec
 
 class TreeSpec extends AnyFlatSpec {
+
   val testTree: Tree[String] = Tree.branch(
     "1",
     Tree.branch(

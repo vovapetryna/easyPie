@@ -1,4 +1,4 @@
-package shared
+package shared.tree
 
 import cats._
 import cats.derived._

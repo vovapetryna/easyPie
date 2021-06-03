@@ -1,4 +1,4 @@
-package shared
+package shared.tree
 
 import cats.Order
 import cats.implicits._
