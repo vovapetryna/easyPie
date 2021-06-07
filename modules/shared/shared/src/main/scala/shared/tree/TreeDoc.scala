@@ -1,5 +1,6 @@
 package shared.tree
 
+import io.circe.generic.JsonCodec
 import shared.actions
 
 import scala.scalajs.js.JSConverters._
@@ -16,12 +17,10 @@ object TreeDoc {
     3,
     siteId
   )
-
-  def apply(data: STree, localId: Int)(implicit siteId: Int): TreeDoc = new TreeDoc(data, localId, siteId)
 }
 
 @scala.scalajs.js.annotation.JSExportAll
-class TreeDoc(data: STree, localId: Int, implicit val siteId: Int) {
+@JsonCodec case class TreeDoc(data: STree, localId: Int, implicit val siteId: Int) {
   def represent: List[SAtom]                = data.infixReduce(a => a :: Nil)
   def jsRepr: scala.scalajs.js.Array[SAtom] = represent.toJSArray
 
@@ -29,7 +28,7 @@ class TreeDoc(data: STree, localId: Int, implicit val siteId: Int) {
     val newTree = action match {
       case actions.Action.Add(v, l, r, id) => data.put(Atom.create(localId, v)(id), l, r)
     }
-    TreeDoc(newTree, localId + 1)
+    TreeDoc(newTree, localId + 1, siteId)
   }
 
   lazy val rawTree: STree = data

@@ -27,7 +27,7 @@ package object routes {
         .evalMap { _ =>
           topic.get.flatMap {
             _.topics.values.toList
-              .map(_.publish1(models.OutputMessages.Ping()).as())
+              .map(_.publish1(models.OutputMessages.Ping(Set.empty, Set.empty)).as())
               .sequence
               .as()
           }

@@ -26,7 +26,12 @@ class DocumentWS[F[_]: Async](
           case Some(s) => s.pure[F]
           case None    => Topic[F, models.OutputMessages].flatMap(topic => topicsR.modify(_.addTopic(documentId, topic)))
         }
-      } yield result.map(m => Text(m.asJson.noSpaces))
+      } yield result
+        .filter(r =>
+          r.to.contains(account.session._id.toHexString) ||
+            !r.filter.contains(account.session._id.toHexString)
+        )
+        .map(m => Text(m.asJson.noSpaces))
 
       val fromClient: Pipe[F, WebSocketFrame, Unit] = _.collect {
         case Text(msg, _) =>
@@ -36,7 +41,7 @@ class DocumentWS[F[_]: Async](
           }
         case _: Close => models.InputMessages.Close("socket_closed")
         case _        => models.InputMessages.Wrong("unsupported_message_type")
-      }.evalMap(handler(handlers.Input(documentId, topicsR))(_))
+      }.evalMap(handler(handlers.Input(documentId, topicsR, repo, account.session))(_))
 
       toClientF.flatMap(toClient => WebSocketBuilder[F].build(toClient, fromClient))
     }(Forbidden("wrong_document_permissions"))

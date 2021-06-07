@@ -1,31 +1,16 @@
 package models
 
 import cats.implicits._
-import io.circe._
-import io.circe.generic.semiauto._
-import io.circe.syntax._
+import io.circe.generic.JsonCodec
 
-trait OutputMessages
+@JsonCodec(encodeOnly = true) sealed trait OutputMessages {
+  val to: Set[String]
+  val filter: Set[String]
+}
 
 object OutputMessages {
-  case class Simple(value: String) extends OutputMessages
-  case class Ping()                extends OutputMessages
-
-  object Simple {
-    implicit val r: Decoder[Simple] = deriveDecoder
-    implicit val w: Encoder[Simple] = deriveEncoder
-  }
-  object Ping {
-    implicit val r: Decoder[Ping] = deriveDecoder
-    implicit val w: Encoder[Ping] = deriveEncoder
-  }
-
-  implicit val w: Encoder[OutputMessages] = Encoder.instance {
-    case simple: Simple => simple.asJson
-    case ping: Ping     => ping.asJson
-  }
-  implicit val r: Decoder[OutputMessages] = List[Decoder[OutputMessages]](
-    Decoder[Simple].widen,
-    Decoder[Ping].widen
-  ).reduceLeft(_ or _)
+  @JsonCodec(encodeOnly = true) case class Simple(value: String, to: Set[String], filter: Set[String])                 extends OutputMessages
+  @JsonCodec(encodeOnly = true) case class Ping(to: Set[String], filter: Set[String])                                  extends OutputMessages
+  @JsonCodec(encodeOnly = true) case class Reload(value: shared.tree.TreeDoc, to: Set[String], filter: Set[String])    extends OutputMessages
+  @JsonCodec(encodeOnly = true) case class Action(action: shared.actions.Action, to: Set[String], filter: Set[String]) extends OutputMessages
 }

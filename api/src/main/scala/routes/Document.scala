@@ -13,9 +13,9 @@ class Document[F[_]: Async](repo: mongos.Repos[F]) extends Http4sDsl[F] {
     case GET -> Root / "get" as account =>
       Ok(account.asJson)
     case GET -> Root / "create" as account =>
-      val tree = shared.tree.TreeDoc.init(account._id.hashCode())
+      val tree = shared.tree.TreeDoc.init(0)
       for {
-        documentId <- repo.document.create(tree.rawTree)
+        documentId <- repo.document.create(tree)
         _          <- repo.permission.create(models.Permission(account._id, documentId))
         response   <- Ok(documentId.asJson)
       } yield response

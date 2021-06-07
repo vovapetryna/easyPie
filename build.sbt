@@ -1,6 +1,9 @@
 ThisBuild / version := "0.1.0"
 ThisBuild / scalaVersion := "2.13.5"
-ThisBuild / scalacOptions := Seq("-language:postfixOps")
+ThisBuild / scalacOptions := Seq(
+  "-language:postfixOps",
+  "-Ymacro-annotations"
+)
 
 //--- Dependencies
 val refinedV    = "0.9.23"

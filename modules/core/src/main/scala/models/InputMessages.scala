@@ -1,54 +1,15 @@
 package models
 
 import cats.implicits._
-import io.circe._
-import io.circe.generic.semiauto._
-import io.circe.syntax._
+import io.circe.generic.JsonCodec
 
-trait InputMessages
+@JsonCodec(decodeOnly = true) sealed trait InputMessages
 
 object InputMessages {
-  case class Simple(value: String)  extends InputMessages
-  case class Wrong(ex: String)      extends InputMessages
-  case class Close(message: String) extends InputMessages
+  @JsonCodec(decodeOnly = true) case class Simple(value: String)  extends InputMessages
+  @JsonCodec(decodeOnly = true) case class Wrong(ex: String)      extends InputMessages
+  @JsonCodec(decodeOnly = true) case class Close(message: String) extends InputMessages
 
-  case class Reload()                              extends InputMessages
-  case class Action(action: shared.actions.Action) extends InputMessages
-
-  object Simple {
-    implicit val r: Decoder[Simple] = deriveDecoder
-    implicit val w: Encoder[Simple] = deriveEncoder
-  }
-  object Wrong {
-    implicit val r: Decoder[Wrong] = deriveDecoder
-    implicit val w: Encoder[Wrong] = deriveEncoder
-  }
-  object Close {
-    implicit val r: Decoder[Close] = deriveDecoder
-    implicit val w: Encoder[Close] = deriveEncoder
-  }
-
-  object Reload {
-    implicit val r: Decoder[Reload] = deriveDecoder
-    implicit val w: Encoder[Reload] = deriveEncoder
-  }
-  object Action {
-    implicit val r: Decoder[Action] = deriveDecoder
-    implicit val w: Encoder[Action] = deriveEncoder
-  }
-
-  implicit val w: Encoder[InputMessages] = Encoder.instance {
-    case simple: Simple => simple.asJson
-    case wrong: Wrong   => wrong.asJson
-    case close: Close   => close.asJson
-    case reload: Reload => reload.asJson
-    case action: Action => action.asJson
-  }
-  implicit val r: Decoder[InputMessages] = List[Decoder[InputMessages]](
-    Decoder[Simple].widen,
-    Decoder[Wrong].widen,
-    Decoder[Close].widen,
-    Decoder[Reload].widen,
-    Decoder[Action].widen
-  ).reduceLeft(_ or _)
+  @JsonCodec(decodeOnly = true) case class Reload()                              extends InputMessages
+  @JsonCodec(decodeOnly = true) case class Action(action: shared.actions.Action) extends InputMessages
 }

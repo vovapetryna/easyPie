@@ -12,7 +12,7 @@ package object mongos {
 
   def init[F[_]: Async](db: MongoDatabaseF[F]): F[Repos[F]] = for {
     accountCol    <- db.getCollectionWithCirceCodecs[models.Account]("accounts")
-    documentCol   <- db.getCollectionWithCirceCodecs[shared.tree.STree]("documents")
+    documentCol   <- db.getCollectionWithCirceCodecs[shared.tree.TreeDoc]("documents")
     permissionCol <- db.getCollectionWithCirceCodecs[models.Permission]("permissions")
   } yield Repos(
     new Account[F](accountCol),
