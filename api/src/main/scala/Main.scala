@@ -1,32 +1,33 @@
-import cats._
-import cats.implicits._
 import cats.effect._
-import cats.effect.implicits._
-import org.http4s.syntax._
-import org.http4s.implicits._
-import org.http4s.server.blaze._
-import org.http4s.server.Router
+import cats.implicits._
 import eu.timepit.refined.auto._
-import doobie._
+import fs2._
+import mongo4cats.circe._
+import mongo4cats.client.MongoClientF
+import org.http4s.implicits._
+import org.http4s.server.blaze.BlazeServerBuilder
 
 import scala.concurrent.ExecutionContext.global
 
-import java.io.File
-
 object Main extends IOApp {
-  val confFile = jsConfig.defFile(getClass.getClassLoader)
+  middlewares.Authentication.tsecWindowsFix()
 
-  def run(args: List[String]) = for {
-    api      <- jsConfig.loadConfig[IO, configs.Api](configs.Api.reader[IO], confFile)
-    db       <- jsConfig.loadConfig[IO, configs.Db](configs.Db.reader[IO], confFile)
-    authConf <- jsConfig.loadConfig[IO, configs.Auth](configs.Auth.reader[IO], confFile)
-    tx    = Transactor.fromDriverManager[IO](db.driver, db.url, db.name, db.password)
-    repos = doobies.repos(tx)
-    auth  = middlewares.AuthenticationImpl.build[IO](authConf.secretKey, repos.account)
-    service = (new routes.Authentication(repos.account, auth).routes) <+>
-      auth.wrap(new routes.Account(repos.account).routes)
-    router = Router("/" -> service).orNotFound
-    server <- BlazeServerBuilder[IO](global).bindHttp(api.port, api.host).withHttpApp(router).resource.use(_ => IO.never).as(ExitCode.Success)
-  } yield server
-
+  def run(args: List[String]): IO[ExitCode] = for {
+    conf <- configs.init[IO]("application.conf", getClass.getClassLoader)
+    result <- MongoClientF.fromConnectionString[IO](s"mongodb://${conf.db.host}:${conf.db.port}").use { client =>
+      for {
+        db      <- client.getDatabase(conf.db.db)
+        repo    <- mongos.init[IO](db)
+        routing <- routes.init[IO](repo, conf)
+        (route, ping) = routing
+        exitCode <- {
+          val server = BlazeServerBuilder[IO](global)
+            .bindHttp(conf.api.port, conf.api.host)
+            .withHttpApp(route.orNotFound)
+            .serve
+          Stream(server, ping).parJoinUnbounded.compile.drain.as(ExitCode.Success)
+        }
+      } yield exitCode
+    }
+  } yield result
 }

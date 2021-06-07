@@ -1,14 +1,22 @@
 package models
 
-import io.circe._
+import io.circe.generic.JsonCodec
 import io.circe.refined._
+import mongo4cats.circe._
+import org.mongodb.scala.bson.ObjectId
 import types._
 
-final case class Account(id: Id, name: NeString, email: Email, password: NeString) {
-  lazy val session: Session = Session(id, email)
+@JsonCodec case class Account(_id: ObjectId, login: NeString, token: NeString) {
+  lazy val session: Account.Session = Account.Session(_id)
 }
 
 object Account {
-  implicit val decoder: Decoder[Account] = Decoder.forProduct4("id", "name", "email", "password")(Account.apply)
-  implicit val encoder: Encoder[Account] = Encoder.forProduct4("id", "name", "email", "password")(t => (t.id, t.name, t.email, t.password))
+  def fromRegister(register: Account.I.Register, token: NeString): Account = Account(new ObjectId(), register.login, token)
+
+  @JsonCodec case class Session(_id: ObjectId)
+
+  object I {
+    @JsonCodec(decodeOnly = true) case class Login(login: NeString, token: NeString)
+    @JsonCodec(decodeOnly = true) case class Register(login: NeString)
+  }
 }

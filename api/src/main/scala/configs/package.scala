@@ -1,32 +1,25 @@
-package configs
-
-import cats._
+import cats.effect.Sync
 import cats.implicits._
-import cats.effect._
+import eu.timepit.refined.pureconfig._
+import pureconfig._
+import pureconfig.generic.semiauto._
 import types._
-import io.circe._
-import io.circe.refined._
-import jsConfig._
 
-final case class Api(host: NeString, port: Int)
-object Api {
-  implicit val r: Decoder[Api]            = Decoder.forProduct2("host", "port")(Api.apply)
-  def reader[F[_]: Sync]: CReader[F, Api] = deriveReader[F, Api]("api")
+package object configs {
+  final case class Api(host: NeString, port: Int)
+  object Api { implicit val r: ConfigReader[Api] = deriveReader }
+
+  final case class Db(host: NeString, port: Int, db: NeString)
+  object Db { implicit val r: ConfigReader[Db] = deriveReader }
+
+  final case class Secure(jwtKey: NeString)
+  object Secure { implicit var r: ConfigReader[Secure] = deriveReader }
+
+  final case class Conf(api: Api, db: Db, secure: Secure)
+
+  def init[F[_]: Sync](resource: String, classLoader: ClassLoader): F[Conf] = for {
+    db     <- Sync[F].delay { ConfigSource.resources(resource, classLoader).at("db").loadOrThrow[configs.Db] }
+    api    <- Sync[F].delay { ConfigSource.resources(resource, classLoader).at("api").loadOrThrow[configs.Api] }
+    secure <- Sync[F].delay { ConfigSource.resources(resource, classLoader).at("secure").loadOrThrow[configs.Secure] }
+  } yield Conf(api, db, secure)
 }
-
-final case class Db(driver: NeString, url: Url, name: NeString, password: NeString)
-object Db {
-  implicit val r: Decoder[Db]            = Decoder.forProduct4("driver", "url", "name", "password")(Db.apply)
-  def reader[F[_]: Sync]: CReader[F, Db] = deriveReader[F, Db]("db")
-}
-
-final case class Auth(secretKey: NeString)
-object Auth {
-  implicit val r: Decoder[Auth]            = Decoder.forProduct1("secretKey")(Auth.apply)
-  def reader[F[_]: Sync]: CReader[F, Auth] = deriveReader[F, Auth]("auth")
-}
-
-def apiWithDb[F[_]: Sync]: CReader[F, (Api, Db)] = for {
-  api <- Api.reader
-  db  <- Db.reader
-} yield (api, db).tupled

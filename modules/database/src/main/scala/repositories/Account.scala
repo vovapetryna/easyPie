@@ -1,9 +1,10 @@
 package repositories
 
-import types._
+import org.mongodb.scala.bson.ObjectId
+import types.NeString
 
 trait Account[F[_]] {
-  def getById(id: Id): F[Option[models.Account]]
-  def insert(account: models.Account): F[Int]
-  def getByEmailAndPassword(email: Email, password: NeString): F[Option[models.Account]]
+  def byId(id: ObjectId): F[Option[models.Account]]
+  def byLogin(login: NeString): F[Option[models.Account]]
+  def create(account: models.Account): F[Unit]
 }
