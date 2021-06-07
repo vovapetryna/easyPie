@@ -1,0 +1,53 @@
+* {font-family: 'Roboto', sans-serif;}
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background: rgb(180, 121, 255);
+    background: linear-gradient(135deg, rgba(180, 121, 255, 1) 0%, rgba(236, 144, 230, 1) 35%, rgba(190, 244, 255, 1) 100%);
+}
+
+textarea {
+    box-sizing: border-box;
+    resize: none;
+    outline: none;
+    border: none;
+    width: 100%;
+    height: 100%;
+
+    font-weight: 100;
+    font-size: 1.2em;
+
+    padding: 0 1em;
+}
+
+.container {
+    width: 50%;
+    height: 100%;
+    margin: 0 auto;
+}
+@media (max-width: 900px) {  .container {width: 60%;}  }
+@media (max-width: 750px) {  .container {width: 80%;}  }
+
+.card {
+    height: 40%;
+    background-color: white;
+    padding: 5% 0;
+    border-radius: 10px;
+}
+
+.description {
+    color: white;
+    width: 100%;
+    text-align: center;
+}
+h1.description {
+    padding-top: 2em;
+    font-weight: 500;
+    font-size: 2em;
+}
+h2.description {
+    margin-bottom: 1em;
+    font-weight: 100;
+    font-size: 1em;
+}

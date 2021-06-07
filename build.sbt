@@ -61,9 +61,7 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
       "org.typelevel" %%% "kittens"     % "2.2.2"
     )
   )
-  .settings(
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) }
-  )
+  .settings(scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) })
 
 lazy val core = project
   .in(file("modules/core"))

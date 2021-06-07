@@ -15,10 +15,12 @@ package object routes {
 
     val auth      = new routes.Auth[F](repo, authMiddleware)
     val documents = new routes.Document[F](repo)
+    val files     = new routes.Resources[F]
 
     Ref.of[F, models.Topics[F]](models.Topics.init[F]).map { topic =>
       val ws = new routes.DocumentWS[F](topic, handlers.handler(), repo)
       Router(
+        "/"        -> files.routes,
         "auth"     -> auth.routes,
         "document" -> authMiddleware.wrap(ws.routes),
         "document" -> authMiddleware.wrap(documents.routes)
