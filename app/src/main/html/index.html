@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>easyPie</title>
@@ -11,13 +11,33 @@
 <body>
 
 <div class="container">
-    <h1 class="description">CRDT based document</h1>
-    <h2 class="description">support text adding (deletion coming soon)</h2>
-    <div class="card">
-        <textarea id="input" cols="60" rows="5"></textarea>
-    </div>
-</div>
+    <div id="edit-view" class="view">
+        <h1 class="description">CRDT based document</h1>
+        <h2 class="description">support text adding (deletion coming soon)</h2>
+        <div class="card">
+            <textarea id="input" cols="60" rows="5"></textarea>
+        </div>
 
-<script src="/files/main.js" type="module"></script>
+        <div id="control-view">
+            <div class="panel">
+                <h3 class="description">accessible documents:<button id="add-button" class="add">+</button></h3>
+                <hr>
+                <div id="doc-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-view" class="view">
+        <h1 class="description">Authentication</h1>
+        <h2 class="description">enter login and access token</h2>
+        <form>
+            <input id="login" placeholder="login"/>
+            <input id="token" placeholder="token"/>
+        </form>
+        <button id="auth-button" class="auth"></button>
+    </div>
+
+</div>
+<script src="/files/index.js" type="module"></script>
 </body>
 </html>

@@ -13,6 +13,7 @@ class Resources[F[_]: Async] {
       "files" -> fileService[F](FileService.Config(s"$srcRoot/modules/shared/js/target/scala-2.13/shared-fastopt")),
       "files" -> fileService[F](FileService.Config(s"$srcRoot/app/src/main/js")),
       "files" -> fileService[F](FileService.Config(s"$srcRoot/app/src/main/html")),
-      "files" -> fileService[F](FileService.Config(s"$srcRoot/app/src/main/css"))
+      "files" -> fileService[F](FileService.Config(s"$srcRoot/app/src/main/css")),
+      "files" -> fileService[F](FileService.Config(s"$srcRoot/app/src/main/src"))
     )
 }

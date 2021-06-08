@@ -25,7 +25,7 @@ package object routes {
         "document" -> authMiddleware.wrap(ws.routes),
         "document" -> authMiddleware.wrap(documents.routes)
       ) -> Stream
-        .awakeEvery[F](40.seconds)
+        .awakeEvery[F](20.seconds)
         .evalMap { _ =>
           topic.get.flatMap {
             _.topics.values.toList

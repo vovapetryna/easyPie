@@ -27,10 +27,8 @@ class DocumentWS[F[_]: Async](
           case None    => Topic[F, models.OutputMessages].flatMap(topic => topicsR.modify(_.addTopic(documentId, topic)))
         }
       } yield result
-        .filter(r =>
-          r.to.contains(account.session._id.toHexString) ||
-            !r.filter.contains(account.session._id.toHexString)
-        )
+        .filter(r => if (r.to.isEmpty) true else r.to.contains(account.session._id.toHexString))
+        .filter(r => !r.filter.contains(account.session._id.toHexString))
         .map(m => Text(m.asJson.noSpaces))
 
       val fromClient: Pipe[F, WebSocketFrame, Unit] = _.collect {

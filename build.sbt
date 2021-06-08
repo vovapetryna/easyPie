@@ -82,4 +82,4 @@ lazy val root = project
   .aggregate(api)
 
 //Tasks
-addCommandAlias("js", ";project sharedJS; fastOptJS")
+addCommandAlias("js", ";project sharedJS; ~fastOptJS")

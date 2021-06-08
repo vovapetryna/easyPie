@@ -1,5 +1,6 @@
 package shared.tree
 
+import io.circe._
 import io.circe.generic.JsonCodec
 import shared.actions
 
@@ -17,6 +18,9 @@ object TreeDoc {
     3,
     siteId
   )
+  @scala.scalajs.js.annotation.JSExport("loads")
+  def loads(stringTree: String, siteId: Int): TreeDoc =
+    parser.parse(stringTree).flatMap(_.as[TreeDoc]).toOption.map(_.copy(siteId = siteId)).getOrElse(init(siteId))
 }
 
 @scala.scalajs.js.annotation.JSExportAll
@@ -27,9 +31,13 @@ object TreeDoc {
   def process(action: actions.Action): TreeDoc = {
     val newTree = action match {
       case actions.Action.Add(v, l, r, id) => data.put(Atom.create(localId, v)(id), l, r)
+      case _                               => data
     }
     TreeDoc(newTree, localId + 1, siteId)
   }
+
+  def addAction(value: String, left: SAtom, right: SAtom): actions.Action = actions.Action.Add(value, left, right, siteId)
+  def processString(action: String): TreeDoc                              = process(parser.parse(action).flatMap(_.as[actions.Action]).getOrElse(actions.Action.nothing))
 
   lazy val rawTree: STree = data
 }
