@@ -62,7 +62,7 @@ case class Authentication[F[_]: Sync, Session: Decoder: Encoder, Account](
 }
 
 object Authentication {
-  lazy val generator: SecureRandomIdGenerator = SecureRandomIdGenerator(32)
+  lazy val generator: SecureRandomIdGenerator = SecureRandomIdGenerator(4)
 
   def generateToken[F[_]: Sync]: F[NeString]              = generator.generateF[F].map(NeString.unsafeFrom)
   def encodePass[F[_]: Sync](pass: NeString): F[NeString] = BCrypt.hashpw[F](pass).map(NeString.unsafeFrom)

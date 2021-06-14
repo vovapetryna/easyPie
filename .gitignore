@@ -7,3 +7,6 @@ null
 .vscode
 target
 metals.sbt
+node_modules
+package-lock.json
+build
