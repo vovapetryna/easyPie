@@ -47,7 +47,7 @@ export const startEditSession = (file) => {
       dispatch(resetCaretPos);
     });
     Client.start(
-      `ws://localhost:9001/document/edit/${file}`,
+      `ws://${window.location.host}/document/edit/${file}`,
       client
     );
     dispatch(closeConnection);

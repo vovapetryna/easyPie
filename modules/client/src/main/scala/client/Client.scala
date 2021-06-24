@@ -11,9 +11,6 @@ class Client[F[_]: Async](
 ) {
   def nextText(newText: String, sid: Int): F[Unit] = stateRef
     .modify { state =>
-      println("state.value", state.value)
-      println("newText", newText)
-      println("operation", utils.text.changeOperation(state.value, newText, sid))
       utils.text.changeOperation(state.value, newText, sid) match {
         case op if op.isId => state -> None
         case op =>

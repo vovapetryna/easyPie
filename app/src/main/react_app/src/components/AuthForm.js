@@ -12,34 +12,39 @@ const Auth = (props) => {
 
   if (props.session._id === undefined) {
     return (
-      <form onSubmit={submitHandler} className="mb-3 mt-3">
-        <div className="mb-3 mt-3">
-          <input
-            type="text"
-            className="form-control"
-            id="loginInput"
-            placeholder="login"
-            value={props.login}
-            onChange={e => props.setLogin(e.target.value)}
-          />
+      <div className="card mb-3 mt-3">
+        <div className="card-header">Session actions</div>
+        <div className="card-body">
+          <form onSubmit={submitHandler}>
+            <div className="mb-3">
+              <input
+                type="text"
+                className="form-control"
+                id="loginInput"
+                placeholder="login"
+                value={props.login}
+                onChange={e => props.setLogin(e.target.value)}
+              />
+            </div>
+            <div className="input-group mb-3">
+              <input
+                type="password"
+                className="form-control"
+                id="tokenInput"
+                placeholder="Token"
+                value={props.token}
+                onChange={e => props.setToken(e.target.value)}/>
+              <button
+                className="btn btn-outline-secondary"
+                type="button"
+                id="getTokenBtn"
+                onClick={_ => props.getToken(props.login)}>Get token
+              </button>
+            </div>
+            <button type="submit" className="btn btn-primary">Authenticate</button>
+          </form>
         </div>
-        <div className="input-group mb-3">
-          <input
-            type="password"
-            className="form-control"
-            id="tokenInput"
-            placeholder="Token"
-            value={props.token}
-            onChange={e => props.setToken(e.target.value)}/>
-          <button
-            className="btn btn-outline-secondary"
-            type="button"
-            id="getTokenBtn"
-            onClick={_ => props.getToken(props.login)}>Get token
-          </button>
-        </div>
-        <button type="submit" className="btn btn-primary">Authenticate</button>
-      </form>
+      </div>
     )
   } else {
     return (
