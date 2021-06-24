@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.MappingsHelper.directory
+
 ThisBuild / version := "0.1.0"
 ThisBuild / scalaVersion := "2.13.5"
 ThisBuild / scalacOptions := Seq(
@@ -73,6 +75,14 @@ lazy val api = project
   .in(file("api"))
   .dependsOn(database)
   .settings(libraryDependencies ++= serverDeps ++ secureDeps)
+  .enablePlugins(DockerPlugin, JavaAppPackaging)
+  .settings(
+    dockerBaseImage := "openjdk:11",
+    dockerRepository := Some("vovapetryna"),
+    Docker / packageName := "easy",
+    dockerExposedPorts := 9001 :: 9001 :: Nil,
+    Universal / mappings ++= directory(target.value / "../../app/src/main/react_app/build")
+  )
 
 lazy val copyTask = taskKey[Unit]("ScalaJS copy bundle to app")
 lazy val client = project
@@ -101,3 +111,4 @@ lazy val root = project
 
 //Tasks
 addCommandAlias("js", ";project client; fastOptJS; copyTask")
+addCommandAlias("docker", ";project api; docker:publishLocal")

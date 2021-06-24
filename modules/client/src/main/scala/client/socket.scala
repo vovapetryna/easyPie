@@ -41,16 +41,19 @@ object socket {
   ): F[Unit] =
     Resource.make[F, dom.WebSocket](Async[F].delay(new dom.WebSocket(host)))(ws => Async[F].delay(ws.close())).use { ws =>
       val onCloseF = Async[F].async_[Unit](cb => ws.onclose = _ => cb(Right()))
+      val onOpenF  = Async[F].async_[Unit](cb => ws.onopen = _ => cb(Right()))
       def onMessage(cb: EitherOutput => Unit): Unit =
         ws.onmessage = wsEvent => cb(decode[shared.messages.Output](wsEvent.data.toString))
+
       val onCloseStream = Stream.eval(onCloseF)
+      val onOpenStream  = Stream.eval(onOpenF)
 
       Queue.unbounded[F, EitherOutput].flatMap { inputQueue =>
         Dispatcher[F].use { dispatcher =>
           Async[F].delay { onMessage(msg => dispatcher.unsafeRunAndForget(inputQueue.offer(msg))) } >> {
             val inStream  = Stream.fromQueueUnterminated(inputQueue).through(inputPipe)
-            val outStream = outputStream.evalMap(msg => secureSend(ws, msg)) ++ Stream.eval(Async[F].delay(ws.close()))
-            Stream(outStream, inStream, onCloseStream).parJoinUnbounded.compile.drain
+            val outStream = onOpenStream ++ outputStream.evalMap(msg => secureSend(ws, msg)) ++ Stream.eval(Async[F].delay(ws.close()))
+            Stream(onCloseStream, outStream, inStream).parJoinUnbounded.compile.drain
           }
         }
       }

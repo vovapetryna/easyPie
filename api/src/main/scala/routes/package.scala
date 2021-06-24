@@ -17,7 +17,7 @@ package object routes {
 
     val auth      = new routes.Auth[F](repo, authMiddleware)
     val documents = new routes.Document[F](repo)
-    val files     = new routes.Resources[F]
+    val files     = new routes.Resources[F](conf)
 
     for {
       topicsQ <- Queue.bounded[F, models.Topics[F]](1)
