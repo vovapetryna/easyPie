@@ -12,7 +12,7 @@ const Auth = (props) => {
 
   if (props.session._id === undefined) {
     return (
-      <form onSubmit={submitHandler} className="mb-3">
+      <form onSubmit={submitHandler} className="mb-3 mt-3">
         <div className="mb-3 mt-3">
           <input
             type="text"
@@ -43,7 +43,7 @@ const Auth = (props) => {
     )
   } else {
     return (
-      <div className="card mb-3">
+      <div className="card mb-3 mt-3">
         <div className="card-header">Session actions</div>
         <div className="card-body">
           <button

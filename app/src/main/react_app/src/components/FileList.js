@@ -3,6 +3,7 @@ import File from "./File";
 import {connect} from "react-redux";
 import {addFile, fileCreate, fileReload} from "../redux/fileReducers";
 import JoinFile from "./JoinFile";
+import "../styles/main.css";
 
 const FilesList = (props) => {
   useEffect(() => {
@@ -15,19 +16,21 @@ const FilesList = (props) => {
       <div className="card-header">
         <div className="btn-toolbar justify-content-between">
           Files
-          <button
-            className="btn btn-primary"
-            onClick={_ => props.fileReload()}>Reload
-          </button>
+          <div>
+            <button
+              className="btn btn-primary Smr-1"
+              onClick={_ => props.fileCreate()}>Create file
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={_ => props.fileReload()}>Reload
+            </button>
+          </div>
         </div>
       </div>
       <div className="card-body">
-        <div>{props.files.map(file => <File file={file} key={file}/>)}</div>
-        <button
-          className="btn btn-primary mt-2"
-          onClick={_ => props.fileCreate()}>Create file
-        </button>
         <JoinFile/>
+        <div>{props.files.map(file => <File file={file} key={file}/>)}</div>
       </div>
     </div>
   )

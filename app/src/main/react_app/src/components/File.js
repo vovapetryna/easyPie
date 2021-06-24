@@ -1,18 +1,21 @@
 import React from "react";
 import {connect} from "react-redux";
-import {setActiveFile} from "../redux/fileReducers";
+import {startEditSession} from "../redux/fileReducers";
+import "../styles/main.css";
 
 const File = (props) => {
   return (
-    <button
-      type="button"
-      className="btn btn-outline-secondary"
-      onClick={_ => props.setActiveFile(props.file)}>{props.file}
-    </button>
+    <div className="Smr-1 line">
+      <button
+        type="button"
+        className="btn btn-outline-secondary"
+        onClick={_ => props.startEditSession(props.file)}>{props.file}
+      </button>
+    </div>
   )
 }
 
 export default connect(null,
   {
-    setActiveFile
+    startEditSession
   })(File);

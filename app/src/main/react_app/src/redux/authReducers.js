@@ -1,3 +1,5 @@
+import {closeConnection} from "./fileReducers";
+
 const SET_SESSION = "SET_SESSION";
 const SET_LOGIN = "SET_LOGIN";
 const SET_TOKEN = "SET_TOKEN";
@@ -63,6 +65,7 @@ export const logout = _ => {
   return async dispatch => {
     await fetch("/auth/logout")
     dispatch(setSession());
+    dispatch(closeConnection);
   }
 }
 

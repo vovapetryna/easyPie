@@ -1,7 +1,7 @@
 import AuthForm from "./components/AuthForm";
 import FileList from "./components/FileList";
 import Input from "./components/Input";
-import Log from "./components/Log";
+import "./styles/main.css";
 
 function App() {
   return (
@@ -13,13 +13,12 @@ function App() {
       </div>
       <div className="row">
         <div className="col">
-          <FileList />
+          <FileList/>
         </div>
+      </div>
+      <div className="row">
         <div className="col">
           <Input/>
-        </div>
-        <div className="col">
-          <Log/>
         </div>
       </div>
     </div>

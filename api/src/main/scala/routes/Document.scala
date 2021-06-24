@@ -13,12 +13,9 @@ import org.mongodb.scala.bson.ObjectId
 
 class Document[F[_]: Async](repo: mongos.Repos[F]) extends Http4sDsl[F] {
   def routes: AuthedRoutes[models.Account, F] = AuthedRoutes.of[models.Account, F] {
-    case GET -> Root / "get" as account =>
-      Ok(account.asJson)
     case GET -> Root / "create" as account =>
-      val tree = shared.tree.TreeDoc.init(0)
       for {
-        documentId <- repo.document.create(tree)
+        documentId <- repo.otDocument.create(models.Document.empty)
         _          <- repo.permission.create(models.Permission(account._id, documentId))
         response   <- Ok(documentId.asJson)
       } yield response
@@ -26,10 +23,9 @@ class Document[F[_]: Async](repo: mongos.Repos[F]) extends Http4sDsl[F] {
       val permissions = repo.permission.byAccountId(account._id)
       Ok(Stream("[") ++ permissions.map(_.documentId.asJson.noSpaces).intersperse(",") ++ Stream("]"))
     case GET -> Root / "join" / documentId as account =>
-      val id = new ObjectId(documentId)
       val permissionT = for {
-        document <- OptionT(repo.document.byId(id))
-        _        <- OptionT.liftF(repo.permission.create(models.Permission(account._id, id)))
+        document <- OptionT(repo.otDocument.byIdNoOps(new ObjectId(documentId)))
+        _        <- OptionT.liftF(repo.permission.create(models.Permission(account._id, document._id)))
         response <- OptionT.liftF(Ok())
       } yield response
       permissionT.value.flatMap {

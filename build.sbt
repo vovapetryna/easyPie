@@ -6,18 +6,15 @@ ThisBuild / scalacOptions := Seq(
 )
 
 //--- Dependencies
+val fs2V        = "3.0.1"
 val refinedV    = "0.9.23"
 val refinedDeps = Seq("eu.timepit" %% "refined-pureconfig").map(_ % refinedV)
 
 val utilDeps = Seq(
   "ch.qos.logback"         % "logback-classic" % "1.2.3",
-  "com.github.pureconfig" %% "pureconfig"      % "0.14.1"
+  "com.github.pureconfig" %% "pureconfig"      % "0.14.1",
+  "co.fs2"                %% "fs2-io"          % fs2V
 )
-
-val fsDeps = Seq(
-  "co.fs2" %% "fs2-core",
-  "co.fs2" %% "fs2-io"
-).map(_ % "3.0.1")
 
 val databaseDeps = Seq(
   "io.github.kirill5k" %% "mongo4cats-core",
@@ -59,14 +56,14 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
       "org.typelevel" %%% "cats-core"   % "2.5.0",
       "org.typelevel" %%% "cats-effect" % "3.0.1",
       "org.typelevel" %%% "kittens"     % "2.2.2"
-    )
+    ),
+    libraryDependencies += "co.fs2" %%% "fs2-core" % fs2V
   )
-  .settings(scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) })
 
 lazy val core = project
   .in(file("modules/core"))
   .dependsOn(shared.jvm)
-  .settings(libraryDependencies ++= utilDeps ++ fsDeps ++ refinedDeps ++ databaseDeps)
+  .settings(libraryDependencies ++= utilDeps ++ refinedDeps ++ databaseDeps)
 
 lazy val database = project
   .in(file("modules/database"))
@@ -77,9 +74,30 @@ lazy val api = project
   .dependsOn(database)
   .settings(libraryDependencies ++= serverDeps ++ secureDeps)
 
+lazy val copyTask = taskKey[Unit]("ScalaJS copy bundle to app")
+lazy val client = project
+  .in(file("modules/client"))
+  .dependsOn(shared.js)
+  .settings(libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "1.1.0")
+  .enablePlugins(ScalaJSPlugin)
+  .settings(scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.ESModule) })
+  .settings(
+    copyTask := {
+      import java.nio.file
+      def copyToDir(filePathName: file.Path, dirName: file.Path) = {
+        file.Files.copy(filePathName, dirName, file.StandardCopyOption.REPLACE_EXISTING)
+      }
+      (Compile / fastOptJS).value
+      val fileName  = "client-fastopt.js"
+      val inputFile = ((Compile / target).value / s"scala-2.13/$fileName").toPath
+      val targetDir = ((Compile / baseDirectory).value / s"../../app/src/main/public-scala-bundle/$fileName").toPath
+      copyToDir(inputFile, targetDir)
+    }
+  )
+
 lazy val root = project
   .in(file("."))
   .aggregate(api)
 
 //Tasks
-addCommandAlias("js", ";project sharedJS; ~fastOptJS")
+addCommandAlias("js", ";project client; fastOptJS; copyTask")

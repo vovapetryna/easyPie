@@ -3,11 +3,12 @@ package models
 import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.Topic
+import shared.messages.Output
 
-case class Topics[F[_]](topics: Map[String, Topic[F, OutputMessages]]) {
-  def subscribe(id: String): Option[Stream[F, OutputMessages]] = topics.get(id).map(_.subscribe(100))
+case class Topics[F[_]](topics: Map[String, Topic[F, Output]]) {
+  def subscribe(id: String): Option[Stream[F, Output]] = topics.get(id).map(_.subscribe(100))
 
-  def addTopic(id: String, topic: Topic[F, OutputMessages]): (Topics[F], Stream[F, OutputMessages]) =
+  def addTopic(id: String, topic: Topic[F, Output]): (Topics[F], Stream[F, Output]) =
     copy(topics = topics + (id -> topic)) -> topic.subscribe(100)
 }
 
