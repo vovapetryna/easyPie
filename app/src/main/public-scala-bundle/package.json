@@ -1,0 +1,6 @@
+{
+  "name": "scala_bundle",
+  "version": "0.1.0",
+  "main": "client-fastopt.js",
+  "scripts": {}
+}

@@ -84,7 +84,9 @@ lazy val api = project
     Universal / mappings ++= directory(target.value / "../../app/src/main/react_app/build")
   )
 
-lazy val copyTask = taskKey[Unit]("ScalaJS copy bundle to app")
+lazy val copyTask        = taskKey[Unit]("scala_js_copy_bundle_to_app")
+lazy val frontEndBuild   = taskKey[Unit]("node_js_bundle_build")
+lazy val frontEndInstall = taskKey[Unit]("node_js_install")
 lazy val client = project
   .in(file("modules/client"))
   .dependsOn(shared.js)
@@ -94,14 +96,27 @@ lazy val client = project
   .settings(
     copyTask := {
       import java.nio.file
-      def copyToDir(filePathName: file.Path, dirName: file.Path) = {
-        file.Files.copy(filePathName, dirName, file.StandardCopyOption.REPLACE_EXISTING)
-      }
+      def copyToDir(filePath: file.Path, targetFilePath: file.Path) =
+        file.Files.copy(filePath, targetFilePath, file.StandardCopyOption.REPLACE_EXISTING)
       (Compile / fastOptJS).value
-      val fileName  = "client-fastopt.js"
-      val inputFile = ((Compile / target).value / s"scala-2.13/$fileName").toPath
-      val targetDir = ((Compile / baseDirectory).value / s"../../app/src/main/public-scala-bundle/$fileName").toPath
-      copyToDir(inputFile, targetDir)
+      val fileName   = "client-fastopt.js"
+      val inputFile  = ((Compile / target).value / s"scala-2.13/$fileName").toPath
+      val targetFile = ((Compile / baseDirectory).value / s"../../app/src/main/public-scala-bundle/$fileName").toPath
+      copyToDir(inputFile, targetFile)
+    },
+    frontEndBuild := {
+      import scala.sys.process._
+      val jsAppPath = ((Compile / baseDirectory).value / s"../../app/src/main/react_app").toString
+      val shell     = if (sys.props("os.name").contains("Windows")) Seq("cmd", "/c") else Seq("bash", "-c")
+      (shell :+ s"npm run build --prefix $jsAppPath") !
+    },
+    frontEndInstall := {
+      import scala.sys.process._
+      val jsAppPath = ((Compile / baseDirectory).value / s"../../app/src/main/react_app").toString
+      val shell     = if (sys.props("os.name").contains("Windows")) Seq("cmd", "/c") else Seq("bash", "-c")
+      (shell :+ s"mkdir $jsAppPath\\node_modules") ###
+        (shell :+ """ "cd $jsAppPath && npm link ../public-scala-bundle" """) ###
+        (shell :+ s""" "cd $jsAppPath && npm install" """) !
     }
   )
 
@@ -110,5 +125,6 @@ lazy val root = project
   .aggregate(api)
 
 //Tasks
-addCommandAlias("js", ";project client; fastOptJS; copyTask")
+addCommandAlias("js", ";project client; fastOptJS; copyTask; frontEndBuild")
+addCommandAlias("jsi", ";project client; fastOptJS; copyTask; frontEndInstall; frontEndBuild")
 addCommandAlias("docker", ";project api; docker:publishLocal")
