@@ -2,7 +2,7 @@ package client.js
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import client.{Client, RefQueue, socket}
+import client.{Client, socket}
 
 import scala.scalajs.js.{Promise, annotation => jsA}
 

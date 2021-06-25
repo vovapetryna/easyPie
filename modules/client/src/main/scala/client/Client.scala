@@ -6,7 +6,7 @@ import fs2.{Pipe, Stream}
 
 class Client[F[_]: Async](
     val stateRef: Ref[F, shared.ot.State],
-    val sendQueue: RefQueue[F, shared.ot.Operation],
+    val sendQueue: RefQueue[F, shared.messages.Input.Operation],
     val updateState: shared.ot.State => Unit
 ) {
   def nextText(newText: String, sid: Int): F[Unit] = stateRef
@@ -16,16 +16,13 @@ class Client[F[_]: Async](
         case op =>
           val newState = state.next(shared.ot.executors.execute(state.value, op))
           updateState(newState)
-          newState -> Option(op)
+          newState -> Option(shared.messages.Input.Operation(op, newState.revision))
       }
     }
     .flatMap(op => if (op.nonEmpty) sendQueue.offer(op) else Async[F].delay())
 
   val outputStream: Stream[F, shared.messages.Input] =
-    Stream.eval(Async[F].delay(shared.messages.Input.Reload())) ++
-      sendQueue.stream.evalMap { operation =>
-        stateRef.get.map(state => shared.messages.Input.Operation(operation, state.revision))
-      }
+    Stream.eval(Async[F].delay(shared.messages.Input.Reload())) ++ sendQueue.stream
 
   val inputPipe: Pipe[F, socket.EitherOutput, Unit] = inS =>
     inS
@@ -38,7 +35,7 @@ class Client[F[_]: Async](
 object Client {
   def create[F[_]: Async](updateState: shared.ot.State => Unit): F[Client[F]] = {
     for {
-      sendQueue <- RefQueue.empty[F, shared.ot.Operation]
+      sendQueue <- RefQueue.empty[F, shared.messages.Input.Operation]
       stateRef  <- Ref.of[F, shared.ot.State](shared.ot.State.empty)
     } yield new Client[F](
       stateRef,

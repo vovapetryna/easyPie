@@ -5,7 +5,11 @@ import cats.implicits._
 package object handlers {
   type Handler[F[_], State] = State => PartialFunction[shared.messages.Output, F[Unit]]
 
-  case class Input[F[_]](stateRef: Ref[F, shared.ot.State], sendQueue: RefQueue[F, shared.ot.Operation], updateState: shared.ot.State => Unit)
+  case class Input[F[_]](
+      stateRef: Ref[F, shared.ot.State],
+      sendQueue: RefQueue[F, shared.messages.Input.Operation],
+      updateState: shared.ot.State => Unit
+  )
 
   def defaultHandler[F[_]: Async]: Handler[F, Input[F]] = _ => { case msg => Async[F].delay(println("unhandled_msg", msg)) }
 
@@ -19,7 +23,7 @@ package object handlers {
 
   def operationHandler[F[_]: Async]: Handler[F, Input[F]] = state => { case op: shared.messages.Output.Operation =>
     state.sendQueue.read
-      .map(_.foldLeft(op.operation) { case (acc, n) => shared.ot.transformers.trans(acc, n) })
+      .map(_.foldLeft(op.operation) { case (acc, n) => shared.ot.transformers.trans(acc, n.operation) })
       .flatMap { operation =>
         state.stateRef.modify { old =>
           val newState = old.next(shared.ot.executors.execute(old.value, operation))

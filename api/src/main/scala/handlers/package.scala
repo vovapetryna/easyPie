@@ -60,7 +60,6 @@ package object handlers {
             }
           .sequence
       )
-
       _ <- OptionT(locks.locks.get(id).map(_.release).sequence)
     } yield ()
 
