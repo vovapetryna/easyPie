@@ -1,5 +1,6 @@
 import com.typesafe.sbt.packager.MappingsHelper.directory
-
+import scala.sys.process._
+lazy val shell = if (sys.props("os.name").contains("Windows")) "cmd /c" else "bash -c"
 ThisBuild / version := "0.1.0"
 ThisBuild / scalaVersion := "2.13.5"
 ThisBuild / scalacOptions := Seq(
@@ -71,6 +72,7 @@ lazy val database = project
   .in(file("modules/database"))
   .dependsOn(core)
 
+lazy val awsDeploy = taskKey[Unit]("deploy_aws_instance")
 lazy val api = project
   .in(file("api"))
   .dependsOn(database)
@@ -82,6 +84,17 @@ lazy val api = project
     Docker / packageName := "easy",
     dockerExposedPorts := 9001 :: 9001 :: Nil,
     Universal / mappings ++= directory(target.value / "../../app/src/main/react_app/build")
+  )
+  .settings(
+    awsDeploy := {
+      val sshPath  = ((Compile / baseDirectory).value / s"../aws_ssh.pem").toString
+      val authExec = s""" ssh -i "$sshPath" ubuntu@ec2-18-198-25-49.eu-central-1.compute.amazonaws.com """
+      val image    = "vovapetryna/easy:0.1.0"
+      val envs     = Seq("ENV", "DB_HOST", "DB_PASSWORD").map(e => s"-e $e=${sys.env.getOrElse(e, e)}").mkString(" ")
+      (shell + s""" "$authExec docker rm --force easy " """) ###
+        (shell + s""" "$authExec docker pull $image " """) ###
+        (shell + s""" "$authExec docker run -d --name easy -p 9001:9001 $envs $image" """) !
+    }
   )
 
 lazy val copyTask        = taskKey[Unit]("scala_js_copy_bundle_to_app")
@@ -105,18 +118,14 @@ lazy val client = project
       copyToDir(inputFile, targetFile)
     },
     frontEndBuild := {
-      import scala.sys.process._
       val jsAppPath = ((Compile / baseDirectory).value / s"../../app/src/main/react_app").toString
-      val shell     = if (sys.props("os.name").contains("Windows")) Seq("cmd", "/c") else Seq("bash", "-c")
-      (shell :+ s"npm run build --prefix $jsAppPath") !
+      (shell + s" npm run build --prefix $jsAppPath") !
     },
     frontEndInstall := {
-      import scala.sys.process._
       val jsAppPath = ((Compile / baseDirectory).value / s"../../app/src/main/react_app").toString
-      val shell     = if (sys.props("os.name").contains("Windows")) Seq("cmd", "/c") else Seq("bash", "-c")
-      (shell :+ s"mkdir $jsAppPath\\node_modules") ###
-        (shell :+ """ "cd $jsAppPath && npm link ../public-scala-bundle" """) ###
-        (shell :+ s""" "cd $jsAppPath && npm install" """) !
+      (shell + s" mkdir $jsAppPath\\node_modules") ###
+        (shell + """ "cd $jsAppPath && npm link ../public-scala-bundle" """) ###
+        (shell + s""" "cd $jsAppPath && npm install" """) !
     }
   )
 
@@ -128,3 +137,4 @@ lazy val root = project
 addCommandAlias("js", ";project client; fastOptJS; copyTask; frontEndBuild")
 addCommandAlias("jsi", ";project client; fastOptJS; copyTask; frontEndInstall; frontEndBuild")
 addCommandAlias("docker", ";project api; docker:publishLocal")
+addCommandAlias("deploy", ";project api; docker:publish; awsDeploy")

@@ -11,3 +11,4 @@ node_modules
 package-lock.json
 build
 client-fastopt.js
+aws_ssh.pem
